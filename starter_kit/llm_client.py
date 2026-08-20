@@ -57,6 +57,7 @@ def chat_completion(messages: list[dict[str, Any]], **extra: Any) -> dict[str, A
         headers={
             "Authorization": "Bearer " + api_key,
             "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
         },
         method="POST",
     )

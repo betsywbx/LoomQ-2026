@@ -1,0 +1,151 @@
+"""
+agent_chat 实现(v2)。
+
+相对上一版的关键改动:
+1. 改用官方提供的 targets/../llm_client.py 做传输层,不再自己拼 HTTP 请求
+   (它已经处理好了 deepseek-v4-flash 专属的 thinking 参数注入逻辑)
+2. 每次调用都把 backend_capabilities.json 的完整内容注入 system prompt,
+   而不是靠模型"记住"各平台参数——这是"智能选后端"任务判分的唯一基准,
+   评测明确说了模型自由发挥/背答案不计分,必须让它对着这份数据做筛选
+3. 不再用关键词去猜"这是不是选后端问题"——12个隐藏prompt变体不可预测,
+   干脆每次都把三份东西(12门白名单/输出格式要求/后端能力表)一起放进
+   system prompt,让模型自己判断当前是三类任务里的哪一类
+"""
+
+import os
+import re
+import json
+import time
+from typing import Optional
+
+from llm_client import chat_completion
+
+# evaluator.py 的 extract_qasm 用这个规则从回复里抠 QASM:
+# 匹配 "OPENQASM 2.0;" 开头,到下一个 ``` 或字符串结尾为止
+_QASM_EXTRACT_RE = re.compile(
+    r"OPENQASM\s+2\.0;.*?(?=^\s*```|\Z)", re.DOTALL | re.MULTILINE
+)
+
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+_BACKEND_CAPS_PATH = os.path.join(_THIS_DIR, "backend_capabilities.json")
+
+
+def _load_backend_capabilities() -> str:
+    """
+    读取官方后端能力表原文,原样注入 system prompt。
+    不做任何裁剪/摘要——评测判定只认这份数据本身,摘要有信息丢失风险。
+    """
+    with open(_BACKEND_CAPS_PATH, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+def _build_system_prompt() -> str:
+    backend_caps_json = _load_backend_capabilities()
+    return f"""你是 LoomQ 量子计算助手,服务对象是完全没有量子计算背景的用户。
+你需要根据用户的自然语言请求,判断它属于以下三类任务之一(不需要用户明说,自己判断):
+
+1. 【生成】根据用户描述的意图,直接写出正确的 OpenQASM 2.0 代码。
+2. 【纠错与修复】如果用户提供了有语法或语义错误的电路,在保持用户原本声明的意图不变的
+   前提下修复它,不要擅自改变用户想要实现的量子态或算法逻辑,只修正错误本身。
+3. 【智能选后端】如果用户是在问"该用哪个后端/平台跑",严格按下面提供的官方后端能力表
+   数据做筛选,不要凭自己的知识猜测各平台参数(可能过时或不准确)。
+
+## 任务1、2 涉及输出电路代码时的强制格式
+
+只允许使用以下12个门: h, x, s, sdg, t, tdg, ry(θ), rz(θ), cx, cu1(θ), swap, ccx。
+
+必须把完整代码放在一个代码块里,代码块内第一行必须是 "OPENQASM 2.0;":
+
+```
+OPENQASM 2.0;
+include "qelib1.inc";
+qreg q[N];
+creg c[N];
+...
+```
+
+代码必须完整、可直接执行、包含寄存器声明和测量语句。代码块之外可以用自然语言简短说明。
+
+## 任务3(选后端)的强制要求
+
+- 你的回复中必须原文出现规范标识(`id` 字段的值,例如 `braket_local_simulator`),
+  只用中文描述平台名称不计分。
+- 如果用户给出的约束条件(比特数/是否要真机/是否要免费/排队容忍度等)没有任何后端能
+  同时满足,如实说明"没有后端满足全部约束",并给出最接近的替代方案,不要为了给出答案
+  而推荐一个实际不满足约束的后端。
+- 下面是完整的官方后端能力表(唯一判分基准),仔细阅读后再回答:
+
+```json
+{backend_caps_json}
+```
+"""
+
+
+def _extract_qasm(text: str) -> Optional[str]:
+    match = _QASM_EXTRACT_RE.search(text)
+    return match.group(0).strip() if match else None
+
+
+def _self_test_qasm(qasm_str: str) -> Optional[str]:
+    """
+    用自己已经写好的 L1 中间层验证一遍生成的 QASM 能不能跑。
+    能跑返回 None;跑不通返回错误信息文本,用于喂回给模型重试。
+    """
+    try:
+        import adapter
+    except ImportError:
+        return None  # adapter不可用时跳过自验,不阻塞主流程
+
+    last_error = None
+    for target in ("spinq", "braket", "originq"):
+        try:
+            adapter.transpile(qasm_str, target)
+            adapter.run(qasm_str, target, shots=256)
+            return None  # 只要有一个后端能跑通,就认为电路本身没问题
+        except Exception as e:
+            last_error = f"{target}: {type(e).__name__}: {e}"
+            continue
+    return last_error
+
+
+def agent_chat(prompt: str) -> str:
+    """
+    [L2] 从 LOOMQ_LLM_* 环境变量读取配置(由 llm_client.py 处理),
+    返回智能体响应文本。
+    """
+    messages = [
+        {"role": "system", "content": _build_system_prompt()},
+        {"role": "user", "content": prompt},
+    ]
+
+    max_retries = 2  # 留出重试预算,l2_policy.json 里 per_case 限时120秒
+    deadline = time.time() + 100  # 给最后收尾留余量,不用满120秒
+
+    response = chat_completion(messages)
+    reply = response["choices"][0]["message"]["content"]
+
+    for _ in range(max_retries):
+        if time.time() > deadline:
+            break
+
+        qasm = _extract_qasm(reply)
+        if qasm is None:
+            # 没有QASM代码块,大概率是"选后端"这类纯建议任务,不需要自验
+            break
+
+        error = _self_test_qasm(qasm)
+        if error is None:
+            break  # 自验通过
+
+        messages.append({"role": "assistant", "content": reply})
+        messages.append({
+            "role": "user",
+            "content": (
+                f"你生成的电路在实际运行时报错了,请修复后重新输出完整代码:\n{error}\n"
+                "保持代码块格式不变(第一行 OPENQASM 2.0;),不要只输出修改说明。"
+            ),
+        })
+        response = chat_completion(messages)
+        reply = response["choices"][0]["message"]["content"]
+
+    return reply
