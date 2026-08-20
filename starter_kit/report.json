@@ -1,32 +1,36 @@
 {
   "contract_version": "1.0",
   "suite": "public",
-  "generated_at": "2026-08-07T05:25:01.140722+00:00",
+  "generated_at": "2026-08-20T03:34:30.215850+00:00",
   "summary": {
-    "passed": 0,
-    "failed": 4,
+    "passed": 4,
+    "failed": 0,
     "total": 4
   },
   "cases": [
     {
       "case_id": "l1:bell.qasm:spinq",
-      "status": "FAIL",
-      "reason": "NotImplementedError: Implement transpile(qasm_str, target)"
+      "status": "PASS",
+      "reason": "fidelity threshold met",
+      "fidelity": 1.0
     },
     {
       "case_id": "l1:bell.qasm:originq",
-      "status": "FAIL",
-      "reason": "NotImplementedError: Implement transpile(qasm_str, target)"
+      "status": "PASS",
+      "reason": "fidelity threshold met",
+      "fidelity": 0.998619
     },
     {
       "case_id": "l1:ghz3.qasm:spinq",
-      "status": "FAIL",
-      "reason": "NotImplementedError: Implement transpile(qasm_str, target)"
+      "status": "PASS",
+      "reason": "fidelity threshold met",
+      "fidelity": 1.0
     },
     {
       "case_id": "l1:ghz3.qasm:originq",
-      "status": "FAIL",
-      "reason": "NotImplementedError: Implement transpile(qasm_str, target)"
+      "status": "PASS",
+      "reason": "fidelity threshold met",
+      "fidelity": 0.999482
     }
   ],
   "notice": "Public self-check only; this report is not an official score."
