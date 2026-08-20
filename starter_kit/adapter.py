@@ -6,19 +6,40 @@ the functions directly or delegate to another language/runtime with subprocess.
 """
 
 from typing import Any, Dict, List, Tuple
-
+import re
+from targets.braket import transpile_braket, run_braket
+from targets.spinq import transpile_spinq, run_spinq
+from targets.originq import transpile_originq, run_originq
 
 SUPPORTED_TARGETS = ("spinq", "originq", "braket")
 
 
 def transpile(qasm_str: str, target: str) -> str:
     """Translate OpenQASM 2.0 into the target backend's native representation."""
-    raise NotImplementedError("Implement transpile(qasm_str, target)")
+    target_lower = target.lower().strip()
+
+    if target_lower == "braket":
+        return transpile_braket(qasm_str)
+    if target_lower == "spinq":
+        return transpile_spinq(qasm_str)
+    elif target_lower == "originq":
+        return transpile_originq(qasm_str)
+    else:
+        raise ValueError(f"不支持的 target 后端: '{target}'")
 
 
 def run(qasm_str: str, target: str, shots: int) -> Dict[str, Any]:
     """Execute a circuit and return the unified result schema from the rules."""
-    raise NotImplementedError("Implement run(qasm_str, target, shots)")
+    target_lower = target.lower().strip()
+    
+    if target_lower == "braket":
+        return run_braket(qasm_str, shots=shots)
+    if target_lower == "spinq":
+        return run_spinq(qasm_str, shots=shots)
+    elif target_lower == "originq":
+        return run_originq(qasm_str, shots=shots)
+    else:
+        raise ValueError(f"不支持的 target 后端: '{target}'")
 
 
 def agent_chat(prompt: str) -> str:
