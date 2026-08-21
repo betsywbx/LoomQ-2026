@@ -7,9 +7,12 @@ the functions directly or delegate to another language/runtime with subprocess.
 
 from typing import Any, Dict, List, Tuple
 import re
+
 from targets.braket import transpile_braket, run_braket
 from targets.spinq import transpile_spinq, run_spinq
 from targets.originq import transpile_originq, run_originq
+
+from l2 import agent_chat as ac
 
 SUPPORTED_TARGETS = ("spinq", "originq", "braket")
 
@@ -44,7 +47,7 @@ def run(qasm_str: str, target: str, shots: int) -> Dict[str, Any]:
 
 def agent_chat(prompt: str) -> str:
     """Optional L2 entry point using the documented LOOMQ_LLM_* environment."""
-    raise NotImplementedError("L2 is optional; implement agent_chat(prompt) to enter")
+    return ac(prompt)
 
 
 def compile_hybrid(hybrid_qasm_str: str) -> Tuple[List[str], str]:
