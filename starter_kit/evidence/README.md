@@ -19,7 +19,6 @@
 每个有效真机平台计 5 分，最多两个平台。模拟器不计真机分。每个平台复制并填写一次下面的信息：
 
 ### SpinQ
-```text
 **平台名称**：量旋云
 **平台 job ID**：S-260820-0010
 **运行时间**：2026-08-20T06:47:33.235567Z
@@ -27,10 +26,8 @@
 **实际执行的 QASM**：[files/spinq-circuit.qasm](./files/spinq-circuit.qasm)
 **平台返回的原始结果**：[files/S-260820-0010_raw.json](./files/S-260820-0010_raw.json)
 **任务页截图**：[files/spinq-screenshot.png](./files/spinq-screenshot.png)
-```
 
 ### OriginQ
-```text
 **平台名称**：本源量子
 **平台 job ID**：959CD11FB04417BF96280FCA8AEE7D5E
 **运行时间**：2026-08-21T01:12:40.984267Z
@@ -46,7 +43,6 @@
 **实际执行的 QASM**：[files/originq-asymmetrical-circuit.qasm](./files/originq-asymmetrical-circuit.qasm)
 **平台返回的原始结果**：[files/originq_EA3F5364AE4741D0DD9B19F918E3F78D_raw.json](./files/originq_EA3F5364AE4741D0DD9B19F918E3F78D_raw.json)
 **任务页截图**：[files/originq-asymmetrical-screenshot.png](./files/originq-asymmetrical-screenshot.png)
-``
 
 工作人员会核对 job ID、运行时间、电路、shots 和原始结果。截图只能辅助说明，不能代替 job ID 和原始结果。
 
