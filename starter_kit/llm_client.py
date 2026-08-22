@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 import urllib.error
 import urllib.request
 from typing import Any
@@ -61,10 +62,15 @@ def chat_completion(messages: list[dict[str, Any]], **extra: Any) -> dict[str, A
         },
         method="POST",
     )
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            return json.loads(response.read())
-    except urllib.error.HTTPError as exc:
-        raise RuntimeError("LoomQ L2 API returned HTTP %d" % exc.code) from exc
-    except urllib.error.URLError as exc:
-        raise RuntimeError("LoomQ L2 API is unreachable") from exc
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return json.loads(response.read())
+        except urllib.error.HTTPError as exc:
+            if exc.code == 429 and attempt < max_retries - 1:
+                time.sleep(2 ** attempt)
+                continue
+            raise RuntimeError("LoomQ L2 API returned HTTP %d" % exc.code) from exc
+        except urllib.error.URLError as exc:
+            raise RuntimeError("LoomQ L2 API is unreachable") from exc
