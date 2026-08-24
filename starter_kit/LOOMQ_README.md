@@ -21,27 +21,23 @@ python3 evaluator.py --level l3
 
 ## 架构
 
-```
-                     ┌─────────────────────┐
-   自然语言请求 ───▶ │   L2: agent_chat     │──▶ 生成/纠错/选后端建议
-   (网页 app.py)     │  (llm_client.py 传输 │       │
-                     │   层 + backend_capa-│       │ 生成的QASM会
-                     │   bilities.json)    │       │ 回灌自验证
-                     └─────────────────────┘       ▼
-                                            ┌───────────────┐
-   OpenQASM 2.0 电路 ───────────────────▶  │   adapter.py   │
-                                            │  (统一入口)     │
-                                            └───────┬────────┘
-                                                     │
-                     ┌───────────────┬───────────────┼───────────────┐
-                     ▼               ▼               ▼               ▼
-              targets/spinq.py targets/braket.py targets/originq.py compiler.py
-              (SpinQit)        (Braket OQ3)      (pyqpanda/3)      (L3: Hybrid-QASM
-                                                                     → RISC-V汇编)
-                     │               │               │
-                     ▼               ▼               ▼
-              本地模拟器/       本地模拟器/       本地模拟器/
-              量旋云真机        (Braket真机)      本源真机
+```mermaid
+graph TD
+    A[用户自然语言 / 意图] -->|L2: 智能体解析与纠错| B(标准 OpenQASM 2.0 电路)
+    B -->|L1: 统一中间层 Transpiler| C{转译路由}
+    C -->|Target: spinq| D[量旋 SpinQit / Taurus 格式]
+    C -->|Target: originq| E[本源 OriginIR / QPanda 格式]
+    C -->|Target: braket| F[AWS Braket OpenQASM 3.0 / SDK 格式]
+
+    D -->|运行| G[量旋超导真机/模拟器]
+    E -->|运行| H[本源悟空真机/模拟器]
+    F -->|运行| I[AWS Braket 模拟器/云端真机]
+
+    G -->|结果标准规范化| J[统一 JSON Schema 结果]
+    H -->|结果标准规范化| J
+    I -->|结果标准规范化| J
+
+    K[L3: 混合编程] -.->|Hybrid-QASM 经典控制块| L[RISC-V 编译与经典控制流执行]
 ```
 
 **每个 `targets/*.py` 都遵循同一个模式**：`transpile_*()` 负责把 OpenQASM 2.0 转成该平台的原生格式
