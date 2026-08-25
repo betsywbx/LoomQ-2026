@@ -1,5 +1,5 @@
 """
-LoomQ Agent 网页交互入口 (L2 冲30分用的"零基础用户能用"部分)。
+LoomQ Agent 网页交互入口
 
 启动方式:
     python3 app.py
@@ -36,8 +36,8 @@ def api_chat():
         reply = agent_chat(prompt)
         return jsonify({"reply": reply})
     except Exception as e:
-        # 把完整错误堆栈打到服务器终端方便你自己调试,
-        # 但返回给前端的只是简短提示,不暴露内部细节
+        # return error to server backend for debug
+        # return message only to frontend without exposing internal details
         traceback.print_exc()
         return jsonify({"error": f"调用失败: {type(e).__name__}: {e}"}), 500
 
@@ -45,7 +45,7 @@ def api_chat():
 @app.route("/api/health")
 def health():
     """
-    快速自检:环境变量是否配置好,不实际调用LLM(省token/避免每次刷新页面都花钱)
+    Fast self-checker: check whether variables are defined without calling LLM
     """
     required = ["LOOMQ_LLM_BASE_URL", "LOOMQ_LLM_API_KEY", "LOOMQ_LLM_MODEL"]
     missing = [k for k in required if not os.environ.get(k)]

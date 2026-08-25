@@ -52,11 +52,6 @@ def _compile_qasm_via_tempfile(compiler, qasm_str: str, optimization_level: int 
         os.unlink(tmp_path)
 
 def _reverse_bitstring_counts(raw_counts: dict) -> dict:
-    """
-
-    SpinQit 用 little endian：结果 bitstring 第一个字符对应 c[0]。
-    题面契约要求 key 最右侧字符是 c[0]（Qiskit 大端书写），需整体反转每个 key。
-    """
     out: Dict[str, int] = {}
     for bitstring, cnt in raw_counts.items():
         rev = bitstring[::-1]

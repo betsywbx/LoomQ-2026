@@ -64,11 +64,6 @@ def _count_transpiled_gates(qasm3_str: str) -> int:
  
  
 def _reverse_bitstring_counts(raw_counts: dict) -> dict:
-    """
-    Braket SDK 官方文档明确写: measurement_counts 的 key 是 big endian 字符串,
-    即 qubit 0 对应最左侧字符。题面契约要求最右侧字符是 c[0](Qiskit约定),
-    方向相反,需要整体反转 —— 跟 SpinQit 那边是同一类问题,同一个修法。
-    """
     out: Dict[str, int] = {}
     for bitstring, cnt in raw_counts.items():
         rev = bitstring[::-1]
@@ -80,7 +75,6 @@ def run_braket(qasm_str: str, shots: int = 8192, device_arn: str = None) -> Dict
     qasm3_str = transpile_braket(qasm_str)
  
     if device_arn:
-        # 真机 / AWS 云端后端: 真实设备的 include 能正常解析,原样发送
         device = AwsDevice(device_arn)
         qasm3_for_exec = qasm3_str
         backend_name = device.name if hasattr(device, "name") else device_arn

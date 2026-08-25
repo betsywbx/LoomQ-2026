@@ -52,9 +52,6 @@ def _fold_cu1_pattern(originir: str, tol: float = 1e-6) -> str:
 
 
 def transpile_originq(qasm_str: str) -> str:
-    """
-    返回 OriginIR 文本,允许门名 H X S SDAG T TDAG RY RZ CNOT CU1/CR SWAP TOFFOLI/CCX。
-    """
     machine = pq.CPUQVM()
     machine.init_qvm()
     try:
@@ -78,10 +75,6 @@ def _count_transpiled_gates(originir_str: str) -> int:
 
 
 def run_originq(qasm_str: str, shots: int = 8192) -> Dict[str, Any]:
-    """
-    转译并在 pyqpanda CPUQVM 本地全振幅模拟器上执行,
-    返回符合统一 JSON Schema 的字典。
-    """
     originir_str = transpile_originq(qasm_str)
 
     # 每次调用都用全新 machine 实例,避免 qubit/creg 分配状态跨调用累积
@@ -93,7 +86,6 @@ def run_originq(qasm_str: str, shots: int = 8192) -> Dict[str, Any]:
     finally:
         machine.finalize()
 
-    # pyqpanda 原生返回的 key 就已经符合契约"最右侧字符是c[0]"的约定,
     counts = dict(raw_counts)
 
     return {

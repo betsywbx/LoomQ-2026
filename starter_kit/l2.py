@@ -6,8 +6,7 @@ from typing import Optional
 
 from llm_client import chat_completion
 
-# evaluator.py 的 extract_qasm 用这个规则从回复里抠 QASM:
-# 匹配 "OPENQASM 2.0;" 开头,到下一个 ``` 或字符串结尾为止
+# match starting of "OPENQASM 2.0;" until next ``` or the end
 _QASM_EXTRACT_RE = re.compile(
     r"OPENQASM\s+2\.0;.*?(?=^\s*```|\Z)", re.DOTALL | re.MULTILINE
 )
@@ -69,8 +68,8 @@ def _extract_qasm(text: str) -> Optional[str]:
 
 def _self_test_qasm(qasm_str: str) -> Optional[str]:
     """
-    用自己已经写好的 L1 中间层验证一遍生成的 QASM 能不能跑。
-    能跑返回 None;跑不通返回错误信息文本,用于喂回给模型重试。
+    Use L1 to verify whether generated QASM is valid. If it is, return None; 
+    else return error message, the feed back to the LLM to retry
     """
     try:
         import adapter
@@ -91,16 +90,17 @@ def _self_test_qasm(qasm_str: str) -> Optional[str]:
 
 def agent_chat(prompt: str) -> str:
     """
-    [L2] 从 LOOMQ_LLM_* 环境变量读取配置(由 llm_client.py 处理),
-    返回智能体响应文本。
+    Read config from LOOMQ_LLM_* (processed by llm_client.py).
+    Return the response received from the agent
     """
     messages = [
         {"role": "system", "content": _build_system_prompt()},
         {"role": "user", "content": prompt},
     ]
 
-    max_retries = 2  # 留出重试预算,l2_policy.json 里 per_case 限时120秒
-    deadline = time.time() + 100  # 给最后收尾留余量,不用满120秒
+    # set retry time limit
+    max_retries = 2
+    deadline = time.time() + 100
 
     response = chat_completion(messages)
     reply = response["choices"][0]["message"]["content"]
