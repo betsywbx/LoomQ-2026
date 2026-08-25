@@ -1,11 +1,11 @@
 {
   "contract_version": "1.0",
   "suite": "public",
-  "generated_at": "2026-08-20T09:00:33.419608+00:00",
+  "generated_at": "2026-08-25T01:03:26.223037+00:00",
   "summary": {
-    "passed": 4,
+    "passed": 6,
     "failed": 0,
-    "total": 4
+    "total": 6
   },
   "cases": [
     {
@@ -18,7 +18,7 @@
       "case_id": "l1:bell.qasm:originq",
       "status": "PASS",
       "reason": "fidelity threshold met",
-      "fidelity": 0.995339
+      "fidelity": 0.994389
     },
     {
       "case_id": "l1:ghz3.qasm:spinq",
@@ -30,7 +30,17 @@
       "case_id": "l1:ghz3.qasm:originq",
       "status": "PASS",
       "reason": "fidelity threshold met",
-      "fidelity": 0.993094
+      "fidelity": 0.994562
+    },
+    {
+      "case_id": "l2:public-ghz",
+      "status": "PASS",
+      "reason": "response contains parseable QASM"
+    },
+    {
+      "case_id": "l3:public-branch",
+      "status": "PASS",
+      "reason": "public branch semantics passed"
     }
   ],
   "notice": "Public self-check only; this report is not an official score."
