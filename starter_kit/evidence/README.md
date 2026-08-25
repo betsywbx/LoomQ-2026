@@ -11,7 +11,7 @@
 - [x] L1 真机
 - [x] L2 交互体验
 - [x] 工程与产品化
-- [ ] 自定义量子 RISC-V Bonus
+- [x] 自定义量子 RISC-V Bonus
 - [x] 新手引导与视觉叙事 Bonus
 
 ## L1 真机
@@ -67,11 +67,9 @@
 
 以下三项必须齐全且测试通过，才获得 8 分：
 
-```text
-指令编码规格：[填写文档路径]
-模拟器扩展实现：[填写代码路径]
-端到端测试命令：[填写命令或文档路径]
-```
+**指令编码规格**：[../bonus/qxor_isa_spec.md](./../bonus/qxor_isa_spec.md)
+**模拟器扩展实现**：[../bonus/riscv_emulator_ext.py](./../bonus/riscv_emulator_ext.py)
+**端到端测试命令**：[../bonus/demo_qxor_e2e.py](./../bonus/demo_qxor_e2e.py)
 
 ## 新手引导与视觉叙事 Bonus
 
