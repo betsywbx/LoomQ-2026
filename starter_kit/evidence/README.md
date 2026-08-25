@@ -67,9 +67,9 @@
 
 以下三项必须齐全且测试通过，才获得 8 分：
 
-**指令编码规格**：[../bonus/qxor_isa_spec.md](./../bonus/qxor_isa_spec.md)
-**模拟器扩展实现**：[../bonus/riscv_emulator_ext.py](./../bonus/riscv_emulator_ext.py)
-**端到端测试命令**：[../bonus/demo_qxor_e2e.py](./../bonus/demo_qxor_e2e.py)
+**指令编码规格**：[../bonus/qxor_isa_spec.md](./../bonus/qxor_isa_spec.md)<br>
+**模拟器扩展实现**：[../bonus/riscv_emulator_ext.py](./../bonus/riscv_emulator_ext.py)<br>
+**端到端测试命令**：[../bonus/demo_qxor_e2e.py](./../bonus/demo_qxor_e2e.py)<br>
 
 ## 新手引导与视觉叙事 Bonus
 
@@ -78,7 +78,7 @@
 **零基础首次运行指南**：<br>
 按[LOOMQ_README.md](../LOOMQ_README.md)指示，打开浏览器访问网页入口，无需安装任何软件、无需注册账号、无需了解任何量子计算或编程知识。页面顶部提供三个可点击的示例问题（生成电路 / 选后端-有解 / 选后端-无解场景），新用户可以直接点击体验，也可以直接用中文描述自己的需求。整个交互过程与市面上任何聊天软件一致，没有额外学习成本。<br><br>
 
-错误恢复或无障碍引导****：<br>
+**错误恢复或无障碍引导**：<br>
 `agent_chat` 内置自验证重试闭环：模型生成的电路会先在本地跑一遍验证正确性，跑不通会自动把报错信息喂回模型重新生成（最多2次重试），用户全程不会看到内部报错细节，拿到的始终是能跑通的结果或诚实的失败说明。界面提供的示例问题按钮，帮助不知道"该问什么"的用户直接上手，降低了"面对空白输入框不知道从哪开始"的常见新手门槛。<br><br>
 
 
